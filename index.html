@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyAI — Premium AI Study Assistant</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="navbar-content">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <span class="logo-text">StudyAI</span>
+            </div>
+            <div class="nav-actions">
+                <button class="nav-btn" title="Toggle Theme" id="theme-toggle">
+                    <i data-lucide="moon"></i>
+                </button>
+                <div class="dropdown-wrapper">
+                    <button class="nav-btn" title="Settings" id="settings-btn">
+                        <i data-lucide="settings"></i>
+                    </button>
+                    <div class="dropdown-menu" id="settings-dropdown">
+                        <div class="dropdown-item" id="clear-chat">
+                            <i data-lucide="trash-2"></i>
+                            Clear Chat
+                        </div>
+                        <div class="dropdown-item" id="lang-toggle">
+                            <i data-lucide="languages"></i>
+                            Switch to English
+                        </div>
+                        <div class="dropdown-item">
+                            <i data-lucide="sliders"></i>
+                            Preferences
+                        </div>
+                        <div class="dropdown-item" id="menu-theme-toggle">
+                            <i data-lucide="sun"></i>
+                            Switch Theme
+                        </div>
+                    </div>
+                </div>
+                <div class="dropdown-wrapper">
+                    <div class="profile-avatar" id="profile-btn">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Profile">
+                    </div>
+                    <div class="dropdown-menu" id="profile-dropdown">
+                        <div class="dropdown-item">
+                            <i data-lucide="user"></i>
+                            View Profile
+                        </div>
+                        <div class="dropdown-item">
+                            <i data-lucide="log-out"></i>
+                            Logout
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="chat-container">
+        <div id="chat-messages" class="chat-messages">
+            <!-- AI Welcome Message -->
+            <div class="message ai-message">
+                <div class="message-content">
+                    <p>Welcome back! I'm your StudyAI assistant. How can I help you excel in your studies today?</p>
+                    <div class="ai-actions">
+                        <button class="action-btn" data-action="generate-notes">
+                            <i data-lucide="file-text"></i>
+                            Generate Notes
+                        </button>
+                        <button class="action-btn" data-action="explain-simply">
+                            <i data-lucide="zap"></i>
+                            Explain Simply
+                        </button>
+                        <button class="action-btn" data-action="create-quiz">
+                            <i data-lucide="help-circle"></i>
+                            Create Quiz
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="input-area">
+        <div class="input-container">
+            <button class="input-btn" id="attach-btn" title="Attach File">
+                <i data-lucide="paperclip"></i>
+            </button>
+            <input type="file" id="file-input" style="display: none;" accept="image/*,application/pdf">
+            
+            <input type="text" id="user-input" placeholder="Ask anything about your studies..." autocomplete="off">
+            
+            <button class="input-btn" id="mic-btn" title="Voice Input">
+                <i data-lucide="mic"></i>
+            </button>
+            
+            <button id="send-btn" class="send-btn" title="Send Message">
+                <i data-lucide="arrow-up"></i>
+            </button>
+        </div>
+    </footer>
+
+    <div class="modal-overlay" id="onboarding-modal">
+        <div class="onboarding-card">
+            <div class="onboarding-icon">
+                <i data-lucide="sparkles" size="32"></i>
+            </div>
+            <h2>Welcome to StudyAI</h2>
+            <p>Your premium bilingual learning assistant is ready to help you excel.</p>
+            
+            <div class="onboarding-features">
+                <div class="feature-item">
+                    <i data-lucide="check-circle"></i>
+                    <span>Ask anything in English, get answers in Urdu.</span>
+                </div>
+                <div class="feature-item">
+                    <i data-lucide="check-circle"></i>
+                    <span>Generate structured study notes instantly.</span>
+                </div>
+                <div class="feature-item">
+                    <i data-lucide="check-circle"></i>
+                    <span>Test your knowledge with AI quizzes.</span>
+                </div>
+            </div>
+            
+            <button class="onboarding-btn" id="start-btn">Get Started</button>
+        </div>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+    <script>
+        // Initialize Lucide Icons for static elements
+        lucide.createIcons();
+    </script>
+</body>
+</html>

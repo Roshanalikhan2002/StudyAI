@@ -1,0 +1,14 @@
+{
+  "name": "studyai-frontend",
+  "version": "1.0.0",
+  "description": "Premium AI Study Assistant",
+  "main": "js/app.js",
+  "scripts": {
+    "start": "npx http-server ."
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
