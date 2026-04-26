@@ -8,6 +8,13 @@ export async function sendMessage() {
     const text = elements.userInput.value.trim();
     if (!text || state.isLoading) return;
 
+    if (text.length < 3) {
+        renderMessage(text, true);
+        elements.userInput.value = '';
+        renderMessage("Baraye meherbani aik clear aur detailed sawal poochein taake main aap ki behtar madad kar sakoon.");
+        return;
+    }
+
     const startTime = Date.now();
     console.log("Analytics: Message Sent", { userId: state.userId, textLength: text.length });
 

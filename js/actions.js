@@ -22,7 +22,10 @@ export async function handleAIAction(actionType, originalText, event) {
     } catch (error) {
         console.error("Action Error:", error);
         indicator.remove();
-        renderMessage("Sorry, I couldn't generate that for you right now.");
+        const errorMsg = state.language === 'urdu' 
+            ? "Main is waqt is sawal ka jawab nahi de sakta. Baraye meherbani thora detail mein sawal poochein."
+            : "I can't process this right now. Please try again with more details.";
+        renderMessage(errorMsg);
     } finally {
         updateState('isLoading', false);
     }

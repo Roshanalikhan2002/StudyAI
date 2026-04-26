@@ -32,17 +32,10 @@ export async function fetchAIResponse(prompt, type = 'chat') {
 }
 
 function formatAIResponse(text) {
-    return text;
+    // Clean any potential [Fallback] tags or prompt leakage if they somehow get through
+    return text.replace(/\[Fallback\]/gi, '').trim();
 }
 
 function generateMockResponse(prompt, type) {
-    const isUrdu = state.language === "urdu";
-    if (isUrdu) {
-        switch(type) {
-            case 'generate-notes': return "📝 NOTES (Urdu): Bunyadi tasawurat extraction... [Fallback]";
-            case 'create-quiz': return "❓ QUIZ (Urdu): Q1: Aham tareef... [Fallback]";
-            default: return `Is topic ka Urdu explanation: "${prompt}" ke mutabiq samjha gaya hai. [Fallback]`;
-        }
-    }
-    return `AI response for "${prompt}" in English mode. [Fallback]`;
+    return "Main is waqt is sawal ka jawab nahi de sakta. Baraye meherbani thora detail mein sawal poochein.";
 }

@@ -4,11 +4,14 @@
   "description": "Premium AI Study Assistant",
   "main": "js/app.js",
   "scripts": {
+    "dev": "netlify dev",
     "start": "npx http-server ."
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
 }

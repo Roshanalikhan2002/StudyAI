@@ -54,15 +54,16 @@ export const handler = async (event) => {
 
         if (!response.ok) {
             return { 
-                statusCode: response.status, 
-                body: JSON.stringify({ error: "Hugging Face API Error" }) 
+                statusCode: 200, 
+                headers,
+                body: JSON.stringify({ text: "Main is waqt is sawal ka jawab nahi de sakta. Baraye meherbani thora detail mein sawal poochein." }) 
             };
         }
 
         const result = await response.json();
         const output = Array.isArray(result) && result[0].generated_text 
             ? result[0].generated_text.trim() 
-            : "No response generated";
+            : "Main is waqt is sawal ka jawab nahi de sakta. Baraye meherbani thora detail mein sawal poochein.";
 
         return {
             statusCode: 200,
@@ -73,26 +74,36 @@ export const handler = async (event) => {
     } catch (error) {
         console.error("Function Error:", error);
         return { 
-            statusCode: 500, 
+            statusCode: 200, 
             headers,
-            body: JSON.stringify({ error: "Internal Server Error" }) 
+            body: JSON.stringify({ text: "Main is waqt is sawal ka jawab nahi de sakta. Baraye meherbani thora detail mein sawal poochein." }) 
         };
     }
 };
 
 function constructPrompt(input, type, language) {
-    const langSuffix = language === 'urdu' ? "IMPORTANT: Respond only in Urdu." : "IMPORTANT: Respond only in English.";
+    const systemPrompt = `You are StudyAI, a professional AI study tutor.
+
+RULES:
+- Always respond in Roman Urdu (English letters only) if language is set to Urdu, otherwise English.
+- Never repeat or echo user input.
+- Never show fallback or placeholder text to users.
+- If question is unclear or too short, ask a polite clarification question.
+- Always give educational, structured, and helpful explanations.
+- Maintain consistent tone suitable for students.`;
+
+    const langInstruction = language === 'urdu' ? "IMPORTANT: Respond ONLY in Roman Urdu (English letters)." : "IMPORTANT: Respond ONLY in English.";
     
     switch(type) {
         case 'chat':
-            return `[INST] You are StudyAI, a premium SaaS learning assistant. User question: "${input}". ${langSuffix} [/INST]`;
+            return `[INST] ${systemPrompt}\n\nUser question: "${input}".\n${langInstruction} [/INST]`;
         case 'generate-notes':
-            return `[INST] Convert the following text into structured study notes with "Key Points" and a "Summary". Text: "${input}". ${langSuffix} [/INST]`;
+            return `[INST] ${systemPrompt}\n\nConvert the following text into structured study notes with "Key Points" and a "Summary". Text: "${input}".\n${langInstruction} [/INST]`;
         case 'explain-simply':
-            return `[INST] Explain this topic in very simple, beginner-friendly terms. Topic: "${input}". ${langSuffix} [/INST]`;
+            return `[INST] ${systemPrompt}\n\nExplain this topic in very simple, beginner-friendly terms. Topic: "${input}".\n${langInstruction} [/INST]`;
         case 'create-quiz':
-            return `[INST] Create 2 multiple choice questions (MCQs) based on this content. Format: Q1, A), B), C), Correct Answer. Content: "${input}". ${langSuffix} [/INST]`;
+            return `[INST] ${systemPrompt}\n\nCreate 2 multiple choice questions (MCQs) based on this content. Format: Q1, A), B), C), Correct Answer. Content: "${input}".\n${langInstruction} [/INST]`;
         default:
-            return input;
+            return `[INST] ${systemPrompt}\n\nInput: "${input}".\n${langInstruction} [/INST]`;
     }
 }
