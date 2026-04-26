@@ -45,7 +45,7 @@ export const handler = async (event) => {
                 console.log(`HF API attempt ${attempt}/${MAX_RETRIES}...`);
                 
                 const response = await fetch(
-                    "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2",
+                    "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta",
                     {
                         headers: { 
                             Authorization: `Bearer ${HUGGING_FACE_TOKEN}`, 
@@ -145,18 +145,23 @@ EXAMPLES OF CORRECT BEHAVIOR:
 - User: "binary number system" → Give a clear explanation of binary numbers.
 - User: "asdfgh" → Only then ask for a clear question.`;
 
-    const langInstruction = language === 'urdu' ? "IMPORTANT: Respond ONLY in Roman Urdu (English letters only, no Urdu script)." : "IMPORTANT: Respond ONLY in English.";
-    
+    const langInstruction = language === 'urdu'
+        ? "IMPORTANT: Respond ONLY in Roman Urdu (English letters only, no Urdu script)."
+        : "IMPORTANT: Respond ONLY in English.";
+
+    const buildPrompt = (userMsg) =>
+        `<|system|>\n${systemPrompt}\n${langInstruction}</s>\n<|user|>\n${userMsg}</s>\n<|assistant|>`;
+
     switch(type) {
         case 'chat':
-            return `[INST] ${systemPrompt}\n\nUser question: "${input}".\n${langInstruction} [/INST]`;
+            return buildPrompt(input);
         case 'generate-notes':
-            return `[INST] ${systemPrompt}\n\nConvert the following text into structured study notes with "Key Points" and a "Summary". Text: "${input}".\n${langInstruction} [/INST]`;
+            return buildPrompt(`Convert the following text into structured study notes with "Key Points" and a "Summary": ${input}`);
         case 'explain-simply':
-            return `[INST] ${systemPrompt}\n\nExplain this topic in very simple, beginner-friendly terms. Topic: "${input}".\n${langInstruction} [/INST]`;
+            return buildPrompt(`Explain this topic in very simple, beginner-friendly terms: ${input}`);
         case 'create-quiz':
-            return `[INST] ${systemPrompt}\n\nCreate 2 multiple choice questions (MCQs) based on this content. Format: Q1, A), B), C), Correct Answer. Content: "${input}".\n${langInstruction} [/INST]`;
+            return buildPrompt(`Create 2 multiple choice questions (MCQs) based on this content. Format: Q1, A), B), C), Correct Answer. Content: ${input}`);
         default:
-            return `[INST] ${systemPrompt}\n\nInput: "${input}".\n${langInstruction} [/INST]`;
+            return buildPrompt(input);
     }
 }
