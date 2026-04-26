@@ -18,57 +18,104 @@ export const handler = async (event) => {
         return { statusCode: 405, headers, body: "Method Not Allowed" };
     }
 
+    const FALLBACK_MSG = "Maaf kijiye, main abhi jawab dene mein qasir hoon. Thodi der baad dobara koshish karein.";
+
     try {
         const { prompt, type, language } = JSON.parse(event.body);
 
         if (!prompt || !type) {
             return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing required fields" }) };
         }
-        const HUGGING_FACE_TOKEN = process.env.HUGGING_FACE_TOKEN;
 
+        const HUGGING_FACE_TOKEN = process.env.HUGGING_FACE_TOKEN;
         if (!HUGGING_FACE_TOKEN) {
-            return { 
-                statusCode: 500, 
-                body: JSON.stringify({ error: "API Token Missing in Environment" }) 
-            };
+            console.error("CRITICAL: HUGGING_FACE_TOKEN is not set in environment variables.");
+            return { statusCode: 200, headers, body: JSON.stringify({ text: FALLBACK_MSG }) };
         }
 
         // Construct Prompt
         const aiPrompt = constructPrompt(prompt, type, language);
 
-        // Call Hugging Face
-        const response = await fetch(
-            "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2",
-            {
-                headers: { 
-                    Authorization: `Bearer ${HUGGING_FACE_TOKEN}`, 
-                    "Content-Type": "application/json" 
-                },
-                method: "POST",
-                body: JSON.stringify({ 
-                    inputs: aiPrompt, 
-                    parameters: { max_new_tokens: 500, temperature: 0.7, return_full_text: false } 
-                }),
-            }
-        );
+        // Call Hugging Face with retry logic (handles model loading / 503)
+        const MAX_RETRIES = 3;
+        let lastError = null;
 
-        if (!response.ok) {
-            return { 
-                statusCode: 200, 
-                headers,
-                body: JSON.stringify({ text: "Main is waqt is sawal ka jawab nahi de sakta. Baraye meherbani thora detail mein sawal poochein." }) 
-            };
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                console.log(`HF API attempt ${attempt}/${MAX_RETRIES}...`);
+                
+                const response = await fetch(
+                    "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2",
+                    {
+                        headers: { 
+                            Authorization: `Bearer ${HUGGING_FACE_TOKEN}`, 
+                            "Content-Type": "application/json",
+                            "x-wait-for-model": "true"
+                        },
+                        method: "POST",
+                        body: JSON.stringify({ 
+                            inputs: aiPrompt, 
+                            parameters: { 
+                                max_new_tokens: 400, 
+                                temperature: 0.7, 
+                                return_full_text: false,
+                                do_sample: true
+                            }
+                        }),
+                    }
+                );
+
+                // Log status for debugging
+                console.log(`HF API response status: ${response.status}`);
+
+                if (response.status === 503) {
+                    const errorBody = await response.json().catch(() => ({}));
+                    const waitTime = errorBody.estimated_time || 20;
+                    console.log(`Model loading, estimated wait: ${waitTime}s. Retrying in 5s...`);
+                    // Wait 5s before retry (Netlify function timeout is 10s, so keep retries short)
+                    await new Promise(r => setTimeout(r, 5000));
+                    lastError = `Model loading (503), estimated time: ${waitTime}s`;
+                    continue;
+                }
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    console.error(`HF API Error ${response.status}: ${errText}`);
+                    lastError = `HTTP ${response.status}: ${errText}`;
+                    break;
+                }
+
+                const result = await response.json();
+                console.log("HF API raw result:", JSON.stringify(result).slice(0, 200));
+
+                const output = Array.isArray(result) && result[0]?.generated_text
+                    ? result[0].generated_text.trim()
+                    : null;
+
+                if (!output) {
+                    console.error("HF returned empty/unexpected response:", JSON.stringify(result));
+                    lastError = "Empty response from model";
+                    break;
+                }
+
+                return {
+                    statusCode: 200,
+                    headers,
+                    body: JSON.stringify({ text: output })
+                };
+
+            } catch (fetchError) {
+                console.error(`Fetch error on attempt ${attempt}:`, fetchError.message);
+                lastError = fetchError.message;
+            }
         }
 
-        const result = await response.json();
-        const output = Array.isArray(result) && result[0].generated_text 
-            ? result[0].generated_text.trim() 
-            : "Main is waqt is sawal ka jawab nahi de sakta. Baraye meherbani thora detail mein sawal poochein.";
-
+        // All retries failed
+        console.error("All HF API attempts failed. Last error:", lastError);
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({ text: output })
+            body: JSON.stringify({ text: FALLBACK_MSG })
         };
 
     } catch (error) {
@@ -76,7 +123,7 @@ export const handler = async (event) => {
         return { 
             statusCode: 200, 
             headers,
-            body: JSON.stringify({ text: "Main is waqt is sawal ka jawab nahi de sakta. Baraye meherbani thora detail mein sawal poochein." }) 
+            body: JSON.stringify({ text: FALLBACK_MSG }) 
         };
     }
 };
